@@ -1,0 +1,12 @@
+FROM golang:latest
+
+WORKDIR /app
+COPY . .
+
+RUN go mod init github.com/yuhsuan105/go_chatrooms
+RUN go get -u github.com/gorilla/mux
+RUN go mod tidy
+
+RUN go build -o appbin main.go
+CMD [ "./appbin" ]
+
