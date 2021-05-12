@@ -2,4 +2,6 @@
 !main.go
 !sql
 !common
-
+!template
+!chatroom
+!user

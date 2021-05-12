@@ -3,8 +3,12 @@ FROM golang:latest
 WORKDIR /app
 COPY . .
 
-RUN go mod init github.com/yuhsuan105/go_chatrooms
+RUN go mod init github.com/yuhsuan105/go_chatroom
 RUN go get -u github.com/gorilla/mux
+RUN go get -u github.com/gorilla/schema
+RUN go get -u github.com/gorilla/csrf
+RUN go get -u gorm.io/gorm
+RUN go get -u gorm.io/driver/mysql
 RUN go mod tidy
 
 RUN go build -o appbin main.go

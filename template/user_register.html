@@ -1,0 +1,32 @@
+{{ define "content" }}
+<h2>註冊</h2>
+<form method="post" action="/user/register">
+    {{ .CsrfField }}
+    {{ .ErrMsg }}
+    <div>
+        <label>Email
+            <input type="email" id="email" name="email" required>
+        </label>
+    </div>
+    
+    <div>
+        <label>Password
+            <input type="password" id="password" name="password" required>
+        </label>
+    </div>
+    
+    <div>
+        <label>Retype Password
+            <input type="password" id="retype" name="retype" required>
+        </label>
+    </div>
+    
+    <div>
+        <label>Nickname
+            <input type="text" id="nickname" name="nickname" required>
+        </label>
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
+{{ end }}
