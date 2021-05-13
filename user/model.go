@@ -9,16 +9,16 @@ import (
 	"github.com/yuhsuan105/go_chatroom/common"
 )
 
-type registerTempl struct {
-	CsrfField template.HTML
-	ErrMsg    string
-}
-
 type User struct {
 	ID       uint `gorm:"primaryKey"`
 	Name     string
 	Email    string
 	Password string
+}
+
+type templData struct {
+	CsrfField template.HTML
+	ErrMsg    string
 }
 
 const (

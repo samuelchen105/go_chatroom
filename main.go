@@ -13,6 +13,8 @@ import (
 func main() {
 	//init database
 	common.InitDatabase()
+	//init secure cookie
+	common.InitCookie()
 	//set up router
 	rt := mux.NewRouter()
 	rt.HandleFunc("/", hello).Methods("GET")

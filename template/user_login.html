@@ -1,5 +1,20 @@
 {{ define "content" }}
-<p>
+<h2>登入</h2>
+<form method="post" action="/user/login">
+    {{ .CsrfField }}
+    {{ .ErrMsg }}
+    <div>
+        <label>Email
+            <input type="email" id="email" name="email" required>
+        </label>
+    </div>
     
-</p>
+    <div>
+        <label>Password
+            <input type="password" id="password" name="password" required>
+        </label>
+    </div>
+    
+    <button type="submit">Submit</button>
+</form>
 {{ end }}
