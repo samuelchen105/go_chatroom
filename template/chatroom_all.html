@@ -1,0 +1,31 @@
+{{ define "content" }}
+<h2>聊天室列表</h2>
+<table>
+    <tr>
+        <th>聊天室名稱</th>
+        <th>室長</th>
+        <th>操作</th>
+    </tr>
+    {{ range .Chatrooms }}
+        <tr>
+            <td><a href="/chatroom/{{ .Id }}">{{ .Name }}</a></td>
+            <td>{{ .Owner_name }}</td>
+            <td><a href="/chatroom/{{ .Id }}">進入</a></td>
+        </tr>
+    {{ else }}
+        <tr>
+            <td>None</td>
+        </tr>
+    {{ end }}
+</table>
+
+<button type="button" onclick="location.href='/chatrooms/?page='+{{ .Prev }}">Prev</button>
+
+<select name="page" id="page" onChange="location.href='/chatrooms/?page='+this.value">
+    {{ range $idx := .Select }}
+    <option value="{{ $idx }}">{{ $idx }}</option>
+    {{ end }}
+</select>
+
+<button type="button" onclick="location.href='/chatrooms/?page='+{{ .Next }}">Next</button>
+{{ end }}

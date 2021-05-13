@@ -66,17 +66,10 @@ func nicknameValidate(name string, minLen int) error {
 		return errors.New("nickname length too short")
 	}
 
-	user := struct {
-		ID       uint `gorm:"primaryKey"`
-		Name     string
-		Email    string
-		Password string
-	}{}
-
 	var count int64
 
 	db := common.GetDatabase()
-	db.Model(&user).Where("name = ?", name).Count(&count)
+	db.Table("users").Where("name = ?", name).Count(&count)
 
 	if count > 0 {
 		return errors.New("this nickname have been used")

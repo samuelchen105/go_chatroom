@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/yuhsuan105/go_chatroom/common"
+	"gorm.io/gorm"
 )
 
 func HandlerRegister(rt *mux.Router) {
@@ -59,7 +61,8 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("insert into database fine")
 	//redirect to login
-	common.Redirect(w, "/login")
+	http.Redirect(w, r, "/user/login", http.StatusFound)
+	//common.Redirect(w, "/login")
 }
 
 func showLogin(w http.ResponseWriter, r *http.Request) {
@@ -86,9 +89,15 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 	var user User
 	err := db.Table("users").Where("email=?", form.Email).Take(&user).Error
 	if err != nil {
-		log.Println("database:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("login: ", err)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		} else {
+			log.Println("database:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 	//validate
 	if user.Email != form.Email || user.Password != form.Password {
@@ -106,6 +115,7 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	//redirect
-	common.Redirect(w, "/chatroom")
+	//redirect TODO: add user name or id to path
+	http.Redirect(w, r, "/chatroom/{user}", http.StatusFound)
+	//common.Redirect(w, "/chatroom")
 }

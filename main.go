@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/gob"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
+	"github.com/yuhsuan105/go_chatroom/chatroom"
 	"github.com/yuhsuan105/go_chatroom/common"
 	"github.com/yuhsuan105/go_chatroom/user"
 )
@@ -15,13 +17,15 @@ func main() {
 	common.InitDatabase()
 	//init secure cookie
 	common.InitCookie()
+	//init session
+	gob.Register([]chatroom.Chatroom{})
 	//set up router
 	rt := mux.NewRouter()
 	rt.HandleFunc("/", hello).Methods("GET")
-	/*
-		srt := rt.PathPrefix("/chatroom").Subrouter()
-		chatroom.HandlerRegister(srt)
-	*/
+
+	rtAllChatrooms := rt.PathPrefix("/chatrooms").Subrouter()
+	chatroom.HandlerRegister(rtAllChatrooms)
+
 	rtUser := rt.PathPrefix("/user").Subrouter()
 	user.HandlerRegister(rtUser)
 	//set up csrf

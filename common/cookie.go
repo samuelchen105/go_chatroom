@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/securecookie"
 )
 
-type ctxKey string
+type CtxKey string
 
 var (
 	secureC *securecookie.SecureCookie
@@ -61,7 +61,7 @@ func AuthHandler(next http.Handler) http.Handler {
 			return
 		}
 
-		newRequest := r.WithContext(context.WithValue(r.Context(), ctxKey(cookieName), cval))
+		newRequest := r.WithContext(context.WithValue(r.Context(), CtxKey(cookieName), cval))
 
 		next.ServeHTTP(w, newRequest)
 	})

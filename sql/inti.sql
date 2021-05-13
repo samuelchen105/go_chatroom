@@ -7,10 +7,11 @@ CREATE TABLE IF NOT EXISTS `users` (
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE IF NOT EXISTS `chatroom` (
+CREATE TABLE IF NOT EXISTS `chatrooms` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
-    `owner_id` INT NOT NULL,
+    `owner_name` VARCHAR(255) NOT NULL,
+    `created_on` DATETIME NOT NULL,
     `chats` JSON DEFAULT NULL, 
     PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
