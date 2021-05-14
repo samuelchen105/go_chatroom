@@ -9,9 +9,9 @@
     </tr>
     {{ range .Chatrooms }}
         <tr>
-            <td><a href="/chatroom/{{ .Id }}">{{ .Name }}</a></td>
+            <td><a href="/chatroom/chat?id={{ .Id }}">{{ .Name }}</a></td>
             <td>{{ .Owner_name }}</td>
-            <td><a href="/chatroom/{{ .Id }}">進入</a></td>
+            <td><a href="/chatroom/chat?id={{ .Id }}">進入</a></td>
         </tr>
     {{ else }}
         <tr>

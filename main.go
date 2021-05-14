@@ -22,12 +22,14 @@ func main() {
 	//set up router
 	rt := mux.NewRouter()
 	rt.HandleFunc("/", hello).Methods("GET")
-
+	//serve websocket
+	common.SetHandlerWebSocket(rt)
+	//serve chatroom
 	rtAllChatrooms := rt.PathPrefix("/chatrooms").Subrouter()
 	chatroom.HandlerRegister(rtAllChatrooms)
 	rtOneChatroom := rt.PathPrefix("/chatroom").Subrouter()
 	chatroom.HandlerRegisterWithAuth(rtOneChatroom)
-
+	//serve user
 	rtUser := rt.PathPrefix("/user").Subrouter()
 	user.HandlerRegister(rtUser)
 	//set up csrf

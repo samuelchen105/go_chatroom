@@ -15,7 +15,6 @@ import (
 
 func HandlerRegister(rt *mux.Router) {
 	rt.HandleFunc("/", showAll).Methods("GET")
-
 }
 
 func HandlerRegisterWithAuth(rt *mux.Router) {
@@ -23,6 +22,7 @@ func HandlerRegisterWithAuth(rt *mux.Router) {
 	rt.HandleFunc("/user", showUserChatroom).Methods("GET")
 	rt.HandleFunc("/create", showCreate).Methods("GET")
 	rt.HandleFunc("/create", doCreate).Methods("POST")
+	rt.HandleFunc("/chat", showChat).Methods("GET")
 }
 
 func showAll(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +88,7 @@ func showUserChatroom(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	//set session
 	err = common.SetSession(w, r, sessionKey, chatrooms)
 	if err != nil {
@@ -105,6 +106,16 @@ func listPager(r *http.Request, key string, param string) (*templChatroom, error
 	if !ok {
 		log.Println("GetSession: something wrong")
 		return nil, errors.New("GetSession: something wrong")
+	}
+
+	if len(list) == 0 {
+		return &templChatroom{
+			Chatrooms: nil,
+			Select:    []int{1},
+			Prev:      1,
+			Current:   1,
+			Next:      1,
+		}, nil
 	}
 
 	index, err := strconv.Atoi(param)
@@ -159,7 +170,6 @@ func doCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	//get user
 	cookie, err := common.ReadCookie(w, r)
-
 	if err != nil {
 		log.Println("read cookie:", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -175,4 +185,32 @@ func doCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/chatroom/user", http.StatusFound)
+}
+
+func showChat(w http.ResponseWriter, r *http.Request) {
+	chatId := r.URL.Query().Get("id")
+
+	db := common.GetDatabase()
+	chatroom := Chatroom{}
+	db.Table("chatrooms").Where("id=?", chatId).Take(&chatroom)
+
+	userCookie, err := common.ReadCookie(w, r)
+	if err != nil {
+		log.Println("read cookie:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		ChatName  string
+		ChatOwner string
+		ChatId    string
+		UserName  string
+	}{
+		ChatName:  chatroom.Name,
+		ChatOwner: chatroom.Owner_name,
+		ChatId:    chatId,
+		UserName:  userCookie.Name,
+	}
+	common.GenerateHTML(w, data, "layout", "chatroom_chat")
 }
