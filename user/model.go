@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"html/template"
 	"net/mail"
 	"unicode"
 
@@ -10,15 +9,10 @@ import (
 )
 
 type User struct {
-	ID       uint `gorm:"primaryKey"`
+	Id       int `gorm:"primaryKey"`
 	Name     string
 	Email    string
 	Password string
-}
-
-type templData struct {
-	CsrfField template.HTML
-	ErrMsg    string
 }
 
 const (

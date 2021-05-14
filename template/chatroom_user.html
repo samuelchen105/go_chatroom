@@ -1,5 +1,6 @@
 {{ define "content" }}
-<h2>聊天室列表</h2>
+<h2>我的聊天室列表</h2>
+<a href="/chatroom/create">建立聊天室</a>
 <table>
     <tr>
         <th>聊天室名稱</th>
@@ -19,9 +20,9 @@
     {{ end }}
 </table>
 
-<button type="button" onclick="location.href='/chatrooms/?page='+{{ .Prev }}">Prev</button>
+<button type="button" onclick="location.href='/chatroom/user?page='+{{ .Prev }}">Prev</button>
 
-<select name="page" id="page" onChange="location.href='/chatrooms/?page='+this.value">
+<select name="page" id="page" onChange="location.href='/chatroom/user?page='+this.value">
     {{ range $idx := .Select }}
         {{ if eq $idx $.Current }}
             <option value="{{ $idx }}" selected>{{ $idx }}</option>
@@ -31,5 +32,5 @@
     {{ end }}
 </select>
 
-<button type="button" onclick="location.href='/chatrooms/?page='+{{ .Next }}">Next</button>
+<button type="button" onclick="location.href='/chatroom/user?page='+{{ .Next }}">Next</button>
 {{ end }}

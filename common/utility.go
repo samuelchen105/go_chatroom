@@ -16,7 +16,16 @@ func GenerateHTML(w http.ResponseWriter, data interface{}, files ...string) {
 	tmpl.ExecuteTemplate(w, "layout", data)
 }
 
-func Redirect(w http.ResponseWriter, target string) {
-	w.Header().Set("Location", target)
-	w.WriteHeader(http.StatusFound)
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 
@@ -21,7 +22,9 @@ const (
 )
 
 type UserCookie struct {
+	Id    int    `json:"id"`
 	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 func InitCookie() {
@@ -67,6 +70,16 @@ func AuthHandler(next http.Handler) http.Handler {
 	})
 }
 
-func ReadCookie() {
+func ReadCookie(w http.ResponseWriter, r *http.Request) (*UserCookie, error) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		return nil, errors.New("user do not login")
+	}
 
+	cval := &UserCookie{}
+	if err := secureC.Decode(cookieName, cookie.Value, cval); err != nil {
+		return nil, err
+	}
+
+	return cval, nil
 }

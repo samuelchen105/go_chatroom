@@ -25,6 +25,8 @@ func main() {
 
 	rtAllChatrooms := rt.PathPrefix("/chatrooms").Subrouter()
 	chatroom.HandlerRegister(rtAllChatrooms)
+	rtOneChatroom := rt.PathPrefix("/chatroom").Subrouter()
+	chatroom.HandlerRegisterWithAuth(rtOneChatroom)
 
 	rtUser := rt.PathPrefix("/user").Subrouter()
 	user.HandlerRegister(rtUser)

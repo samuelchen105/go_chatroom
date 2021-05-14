@@ -20,7 +20,7 @@ func HandlerRegister(rt *mux.Router) {
 }
 
 func showRegister(w http.ResponseWriter, r *http.Request) {
-	data := templData{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
+	data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
 	common.GenerateHTML(w, data, "layout", "user_register")
 }
 
@@ -45,7 +45,7 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 	err := registerValidate(form.Email, form.Password, form.Retype, form.Nickname)
 
 	if err != nil {
-		data := templData{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
+		data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
 		common.GenerateHTML(w, data, "layout", "user_register")
 		return
 	}
@@ -62,11 +62,10 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 	log.Println("insert into database fine")
 	//redirect to login
 	http.Redirect(w, r, "/user/login", http.StatusFound)
-	//common.Redirect(w, "/login")
 }
 
 func showLogin(w http.ResponseWriter, r *http.Request) {
-	data := templData{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
+	data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
 	common.GenerateHTML(w, data, "layout", "user_login")
 }
 
@@ -91,7 +90,8 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("login: ", err)
-			http.Redirect(w, r, "/", http.StatusFound)
+			data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
+			common.GenerateHTML(w, data, "layout", "user_login")
 			return
 		} else {
 			log.Println("database:", err)
@@ -107,7 +107,9 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	//setcookie
 	uc := &common.UserCookie{
-		Email: form.Email,
+		Id:    user.Id,
+		Name:  user.Name,
+		Email: user.Email,
 	}
 	err = common.SetCookie(w, uc)
 	if err != nil {
@@ -115,7 +117,6 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	//redirect TODO: add user name or id to path
-	http.Redirect(w, r, "/chatroom/{user}", http.StatusFound)
-	//common.Redirect(w, "/chatroom")
+	//redirect
+	http.Redirect(w, r, "/chatroom/user", http.StatusFound)
 }

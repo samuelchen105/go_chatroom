@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `chatrooms` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
     `owner_name` VARCHAR(255) NOT NULL,
-    `created_on` DATETIME NOT NULL,
+    `created_on` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `chats` JSON DEFAULT NULL, 
     PRIMARY KEY (`id`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;

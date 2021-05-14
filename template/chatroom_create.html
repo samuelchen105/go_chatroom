@@ -1,0 +1,13 @@
+{{ define "content" }}
+<h2>建立聊天室</h2>
+<a href="./user">我的聊天室</a>
+<br/>
+<form method="post" action="./create">
+    {{ .CsrfField }}
+    {{ .ErrMsg }}
+    <label>建立聊天室名稱
+        <input type="text" id="chatroom_name" name="chatroom_name" required>
+    </label>
+    <button type="submit">建立</button>
+</form>
+{{ end }}
