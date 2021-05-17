@@ -23,7 +23,8 @@ func main() {
 	rt := mux.NewRouter()
 	rt.HandleFunc("/", hello).Methods("GET")
 	//serve websocket
-	common.SetHandlerWebSocket(rt)
+	rtWs := rt.PathPrefix("/ws").Subrouter()
+	common.SetHandlerWebSocket(rtWs)
 	//serve chatroom
 	rtAllChatrooms := rt.PathPrefix("/chatrooms").Subrouter()
 	chatroom.HandlerRegister(rtAllChatrooms)

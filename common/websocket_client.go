@@ -20,7 +20,8 @@ const (
 var (
 	newline = []byte{'\n'}
 	space   = []byte{' '}
-	allHub  = make(map[string]*Hub)
+	MsgHubs = make(map[string]*Hub)
+	MemHubs = make(map[string]*MemHub)
 )
 
 var upgrader = websocket.Upgrader{
@@ -29,7 +30,8 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	hub  *Hub
+	name string
+	hub  IHub
 	conn *websocket.Conn
 	send chan []byte
 }
@@ -37,7 +39,7 @@ type Client struct {
 //from conn to hub
 func (c *Client) readPump() {
 	defer func() {
-		c.hub.unregister <- c
+		c.hub.UnRegister() <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -55,11 +57,11 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		c.hub.Broadcast() <- message
 	}
 }
 
-//form hub to conn
+//from hub to conn
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -101,32 +103,52 @@ func (c *Client) writePump() {
 	}
 }
 
-func connToHub(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func connToHub(hub IHub, userName string, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrader connect: ", err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
-	client.hub.register <- client
+	client := &Client{
+		name: userName,
+		hub:  hub,
+		conn: conn,
+		send: make(chan []byte, 256),
+	}
 
 	go client.writePump()
 	go client.readPump()
+
+	client.hub.Register() <- client
 }
 
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
-	chatId := r.URL.Query().Get("id")
-	hub, ok := allHub[chatId]
+func wsMsgHandler(w http.ResponseWriter, r *http.Request) {
+	chatId := r.URL.Query().Get("chatId")
+	//userName := r.URL.Query().Get("userName")
+	hub, ok := MsgHubs[chatId]
 	if !ok {
 		hub = newHub()
-		go hub.run()
-		allHub[chatId] = hub
+		go hub.Run()
+		MsgHubs[chatId] = hub
 	}
-	connToHub(hub, w, r)
+	connToHub(hub, "", w, r)
+}
+
+func wsMemHandler(w http.ResponseWriter, r *http.Request) {
+	chatId := r.URL.Query().Get("chatId")
+	userName := r.URL.Query().Get("userName")
+	hub, ok := MemHubs[chatId]
+	if !ok {
+		hub = newMemHub()
+		go hub.Run()
+		MemHubs[chatId] = hub
+	}
+	connToHub(hub, userName, w, r)
 }
 
 func SetHandlerWebSocket(rt *mux.Router) {
-	rt.HandleFunc("/ws", websocketHandler)
+	rt.HandleFunc("/msg", wsMsgHandler)
+	rt.HandleFunc("/mem", wsMemHandler)
 }
 
 /*

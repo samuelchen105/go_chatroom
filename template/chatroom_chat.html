@@ -1,9 +1,18 @@
 {{ define "content" }}
 <h2>{{ .ChatName }}/{{ .ChatOwner }}</h2>
-<nav id="container">
-    <div id="member"></div>
-    <div id="log"></div>
-</nav>
+<div id="container">
+</div>
+
+<div id="member">
+    <div>
+        <a>mem</a>
+    </div>
+</div>
+<div id="log">
+    <div>
+        <a>log</a>
+    </div>
+</div>
 
 <form id="form">
     <input type="text" id="msg" size="64" autofocus>
@@ -12,50 +21,88 @@
 
 <script type="text/javascript">
 window.onload = function () {
-    var conn;
+    var connMsg;
+    var connMem;
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
+    var memLog = document.getElementById("member");
     
-    function appendLog(item) {
-        var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
-        log.appendChild(item);
+    function appendLog(elem, item) {
+        var doScroll = elem.scrollTop > elem.scrollHeight - elem.clientHeight - 1;
+        elem.appendChild(item);
         if (doScroll) {
-            log.scrollTop = log.scrollHeight - log.clientHeight;
+            elem.scrollTop = elem.scrollHeight - elem.clientHeight;
         }
     }
     
     document.getElementById("form").onsubmit = function () {
-        if (!conn) {
+        if (!connMsg) {
             return false;
         }
         if (!msg.value) {
             return false;
         }
-        conn.send({{ .UserName }} + ": " + msg.value);
+        connMsg.send({{ .UserName }} + ": " + msg.value);
         msg.value = "";
         return false;
     };
     
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws?id={{ .ChatId }}");
-        conn.onclose = function (evt) {
+        connMsg = new WebSocket("ws://" + document.location.host + "/ws/msg?chatId={{ .ChatId }}");
+        connMsg.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(item);
+            appendLog(log, item);
         };
-        conn.onmessage = function (evt) {
+        connMsg.onmessage = function (evt) {
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
                 var item = document.createElement("div");
                 item.innerText = messages[i];
-                appendLog(item);
+                appendLog(log, item);
             }
         };
+        //member web socket
+        connMem = new WebSocket("ws://" + document.location.host + "/ws/mem?chatId={{ .ChatId }}&userName={{ .UserName }}");
+        connMem.onclose = function (evt) {
+            var item = document.createElement("div");
+            item.innerHTML = "<b>Connection closed.</b>";
+            appendLog(memLog, item);
+        };
+        connMem.onmessage = function (evt) {
+            var messages = evt.data.split('\n');
+            for (var i = 0; i < messages.length; i++) {
+                var target = document.getElementById(messages[i])
+                if (target == null) {
+                    var item = document.createElement("div");
+                    item.id = messages[i]
+                    item.innerText = messages[i];
+                    appendLog(memLog, item);
+                } else {
+                    memLog.removeChild(target)
+                }
+            }
+        };
+
     } else {
         var item = document.createElement("div");
         item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(item);
+        appendLog(log, item);
     }
 };
 </script>
+
+<style type="text/css">
+  
+    #log {
+        background: grey;
+        overflow: auto;
+    }
+
+    #member {
+        background: lightblue;
+        overflow: auto;
+    }
+
+</style>
 {{ end}}
