@@ -1,12 +1,10 @@
-package common
+package websocket
 
 import (
 	"bytes"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
@@ -102,74 +100,3 @@ func (c *Client) writePump() {
 		}
 	}
 }
-
-func connToHub(hub IHub, userName string, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println("upgrader connect: ", err)
-		return
-	}
-	client := &Client{
-		name: userName,
-		hub:  hub,
-		conn: conn,
-		send: make(chan []byte, 256),
-	}
-
-	go client.writePump()
-	go client.readPump()
-
-	client.hub.Register() <- client
-}
-
-func wsMsgHandler(w http.ResponseWriter, r *http.Request) {
-	chatId := r.URL.Query().Get("chatId")
-	//userName := r.URL.Query().Get("userName")
-	hub, ok := MsgHubs[chatId]
-	if !ok {
-		hub = newHub()
-		go hub.Run()
-		MsgHubs[chatId] = hub
-	}
-	connToHub(hub, "", w, r)
-}
-
-func wsMemHandler(w http.ResponseWriter, r *http.Request) {
-	chatId := r.URL.Query().Get("chatId")
-	userName := r.URL.Query().Get("userName")
-	hub, ok := MemHubs[chatId]
-	if !ok {
-		hub = newMemHub()
-		go hub.Run()
-		MemHubs[chatId] = hub
-	}
-	connToHub(hub, userName, w, r)
-}
-
-func SetHandlerWebSocket(rt *mux.Router) {
-	rt.HandleFunc("/msg", wsMsgHandler)
-	rt.HandleFunc("/mem", wsMemHandler)
-}
-
-/*
-func serveWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
-	client.hub.register <- client
-
-	go client.writePump()
-	go client.readPump()
-}
-
-func HandleWebSocket(rt *mux.Router) {
-	hub := newHub()
-	go hub.run()
-	rt.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWebSocket(hub, w, r)
-	})
-}
-*/

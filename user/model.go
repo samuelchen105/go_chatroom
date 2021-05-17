@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"html/template"
 	"net/mail"
 	"unicode"
 
@@ -13,6 +14,11 @@ type User struct {
 	Name     string
 	Email    string
 	Password string
+}
+
+type templForm struct {
+	CsrfField template.HTML
+	ErrMsg    string
 }
 
 const (

@@ -1,11 +1,8 @@
 package chatroom
 
 import (
-	"errors"
 	"log"
-	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
@@ -13,11 +10,11 @@ import (
 	"github.com/yuhsuan105/go_chatroom/common"
 )
 
-func HandlerRegister(rt *mux.Router) {
+func SetHandler(rt *mux.Router) {
 	rt.HandleFunc("/", showAll).Methods("GET")
 }
 
-func HandlerRegisterWithAuth(rt *mux.Router) {
+func SetHandlerWithAuth(rt *mux.Router) {
 	rt.Use(common.AuthHandler)
 	rt.HandleFunc("/user", showUserChatroom).Methods("GET")
 	rt.HandleFunc("/create", showCreate).Methods("GET")
@@ -100,51 +97,8 @@ func showUserChatroom(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/chatroom/user?page=1", http.StatusFound)
 }
 
-func listPager(r *http.Request, key string, param string) (*templChatroom, error) {
-	val := common.GetSession(r, key)
-	list, ok := val.([]Chatroom)
-	if !ok {
-		log.Println("GetSession: something wrong")
-		return nil, errors.New("GetSession: something wrong")
-	}
-
-	if len(list) == 0 {
-		return &templChatroom{
-			Chatrooms: nil,
-			Select:    []int{1},
-			Prev:      1,
-			Current:   1,
-			Next:      1,
-		}, nil
-	}
-
-	index, err := strconv.Atoi(param)
-	if err != nil {
-		log.Println("atoi: ", err)
-		return nil, err
-	}
-
-	totalPage := math.Ceil(float64(len(list)) / 10.0)
-	pageNums := make([]int, int(totalPage))
-	for i := range pageNums {
-		pageNums[i] = i + 1
-	}
-
-	indexLimit := common.Min(index*10, len(list))
-	prev := common.Max(pageNums[0], index-1)
-	next := common.Min(pageNums[len(pageNums)-1], index+1)
-
-	return &templChatroom{
-		Chatrooms: list[(index-1)*10 : indexLimit],
-		Select:    pageNums,
-		Prev:      prev,
-		Current:   index,
-		Next:      next,
-	}, nil
-}
-
 func showCreate(w http.ResponseWriter, r *http.Request) {
-	data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
+	data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
 	common.GenerateHTML(w, data, "layout", "chatroom_create")
 }
 
@@ -164,7 +118,7 @@ func doCreate(w http.ResponseWriter, r *http.Request) {
 	//validate
 	err := chatroomNameValidate(form.ChatroomName, CHATROOM_NAME_MINLEN)
 	if err != nil {
-		data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
+		data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
 		common.GenerateHTML(w, data, "layout", "chatroom_create")
 		return
 	}

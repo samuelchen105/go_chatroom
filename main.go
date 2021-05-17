@@ -10,6 +10,7 @@ import (
 	"github.com/yuhsuan105/go_chatroom/chatroom"
 	"github.com/yuhsuan105/go_chatroom/common"
 	"github.com/yuhsuan105/go_chatroom/user"
+	"github.com/yuhsuan105/go_chatroom/websocket"
 )
 
 func main() {
@@ -22,17 +23,18 @@ func main() {
 	//set up router
 	rt := mux.NewRouter()
 	rt.HandleFunc("/", hello).Methods("GET")
-	//serve websocket
+	//set up router websocket
 	rtWs := rt.PathPrefix("/ws").Subrouter()
-	common.SetHandlerWebSocket(rtWs)
-	//serve chatroom
+	websocket.SetHandler(rtWs)
+	//set up router chatrooms
 	rtAllChatrooms := rt.PathPrefix("/chatrooms").Subrouter()
-	chatroom.HandlerRegister(rtAllChatrooms)
+	chatroom.SetHandler(rtAllChatrooms)
+	//set up router chatroom
 	rtOneChatroom := rt.PathPrefix("/chatroom").Subrouter()
-	chatroom.HandlerRegisterWithAuth(rtOneChatroom)
-	//serve user
+	chatroom.SetHandlerWithAuth(rtOneChatroom)
+	//set up router user
 	rtUser := rt.PathPrefix("/user").Subrouter()
-	user.HandlerRegister(rtUser)
+	user.SetHandler(rtUser)
 	//set up csrf
 	CSRF := csrf.Protect(
 		[]byte(`123456789zxcvbnm,./asdfghjkl;'qw`),

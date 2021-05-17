@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func HandlerRegister(rt *mux.Router) {
+func SetHandler(rt *mux.Router) {
 	rt.HandleFunc("/register", showRegister).Methods("GET")
 	rt.HandleFunc("/register", doRegister).Methods("POST")
 	rt.HandleFunc("/login", showLogin).Methods("GET")
@@ -20,7 +20,7 @@ func HandlerRegister(rt *mux.Router) {
 }
 
 func showRegister(w http.ResponseWriter, r *http.Request) {
-	data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
+	data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
 	common.GenerateHTML(w, data, "layout", "user_register")
 }
 
@@ -45,7 +45,7 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 	err := registerValidate(form.Email, form.Password, form.Retype, form.Nickname)
 
 	if err != nil {
-		data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
+		data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
 		common.GenerateHTML(w, data, "layout", "user_register")
 		return
 	}
@@ -65,7 +65,7 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func showLogin(w http.ResponseWriter, r *http.Request) {
-	data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
+	data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: ""}
 	common.GenerateHTML(w, data, "layout", "user_login")
 }
 
@@ -90,7 +90,7 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("login: ", err)
-			data := common.TemplForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
+			data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: err.Error()}
 			common.GenerateHTML(w, data, "layout", "user_login")
 			return
 		} else {
