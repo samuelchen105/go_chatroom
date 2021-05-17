@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/yuhsuan105/go_chatroom/common"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -50,9 +51,16 @@ func doRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("validate fine")
+	//hash password
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(form.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println("bcrypt: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	//insert into database
 	db := common.GetDatabase()
-	user := &User{Name: form.Nickname, Email: form.Email, Password: form.Password}
+	user := &User{Name: form.Nickname, Email: form.Email, Password: hashedPwd}
 	err = db.Create(user).Error
 	if err != nil {
 		log.Println("db:", err)
@@ -100,7 +108,7 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//validate
-	if user.Email != form.Email || user.Password != form.Password {
+	if user.Email != form.Email || bcrypt.CompareHashAndPassword(user.Password, []byte(form.Password)) != nil {
 		log.Println("user enter wrong email or password")
 		w.WriteHeader(http.StatusBadRequest)
 		return

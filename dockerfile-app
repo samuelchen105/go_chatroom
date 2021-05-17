@@ -12,6 +12,7 @@ RUN go get -u github.com/gorilla/sessions
 RUN go get -u github.com/gorilla/websocket
 RUN go get -u gorm.io/gorm
 RUN go get -u gorm.io/driver/mysql
+RUN go get -u "golang.org/x/crypto/bcrypt"
 RUN go mod tidy
 
 RUN go build -o appbin main.go
