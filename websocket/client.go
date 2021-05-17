@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"bytes"
+	"encoding/json"
 	"log"
 	"time"
 
@@ -18,18 +19,11 @@ const (
 var (
 	newline = []byte{'\n'}
 	space   = []byte{' '}
-	MsgHubs = make(map[string]*Hub)
-	MemHubs = make(map[string]*MemHub)
 )
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
 
 type Client struct {
 	name string
-	hub  IHub
+	hub  *Hub
 	conn *websocket.Conn
 	send chan []byte
 }
@@ -37,7 +31,7 @@ type Client struct {
 //from conn to hub
 func (c *Client) readPump() {
 	defer func() {
-		c.hub.UnRegister() <- c
+		c.hub.Unregister() <- c
 		c.conn.Close()
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
@@ -47,15 +41,22 @@ func (c *Client) readPump() {
 		return nil
 	})
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, text, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Println("error: ", err)
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.Broadcast() <- message
+		text = bytes.TrimSpace(bytes.Replace(text, newline, space, -1))
+		msg := newTextMessage(string(text))
+		//marshal to json
+		jsonMsg, err := json.Marshal(msg)
+		if err != nil {
+			log.Println("json marshal: ", err)
+			break
+		}
+		c.hub.Broadcast() <- jsonMsg
 	}
 }
 

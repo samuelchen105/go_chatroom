@@ -1,16 +1,14 @@
 {{ define "content" }}
 <h2>{{ .ChatName }}/{{ .ChatOwner }}</h2>
-<div id="container">
-</div>
 
-<div id="member">
+<div id="memLog">
     <div>
-        <a>mem</a>
+        <b>MEMBER</b>
     </div>
 </div>
-<div id="log">
+<div id="msgLog">
     <div>
-        <a>log</a>
+        <b>MESSAGE</b>
     </div>
 </div>
 
@@ -21,11 +19,10 @@
 
 <script type="text/javascript">
 window.onload = function () {
-    var connMsg;
-    var connMem;
+    var conn;
     var msg = document.getElementById("msg");
-    var log = document.getElementById("log");
-    var memLog = document.getElementById("member");
+    var msgLog = document.getElementById("msgLog");
+    var memLog = document.getElementById("memLog");
     
     function appendLog(elem, item) {
         var doScroll = elem.scrollTop > elem.scrollHeight - elem.clientHeight - 1;
@@ -34,52 +31,48 @@ window.onload = function () {
             elem.scrollTop = elem.scrollHeight - elem.clientHeight;
         }
     }
+
+    function showLog(elem, str) {
+        var item = document.createElement("div");
+        item.id = str;
+        item.innerText = str;
+        appendLog(elem, item);
+    }
     
     document.getElementById("form").onsubmit = function () {
-        if (!connMsg) {
+        if (!conn) {
             return false;
         }
         if (!msg.value) {
             return false;
         }
-        connMsg.send({{ .UserName }} + ": " + msg.value);
+        conn.send({{ .UserName }} + ": " + msg.value);
         msg.value = "";
         return false;
     };
     
     if (window["WebSocket"]) {
-        connMsg = new WebSocket("ws://" + document.location.host + "/ws/msg?chatId={{ .ChatId }}");
-        connMsg.onclose = function (evt) {
+        conn = new WebSocket("ws://" + document.location.host + "/ws/?chatId={{ .ChatId }}&userName={{ .UserName }}");
+        conn.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(log, item);
+            appendLog(msgLog, item);
         };
-        connMsg.onmessage = function (evt) {
+        conn.onmessage = function (evt) {
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
-                var item = document.createElement("div");
-                item.innerText = messages[i];
-                appendLog(log, item);
-            }
-        };
-        //member web socket
-        connMem = new WebSocket("ws://" + document.location.host + "/ws/mem?chatId={{ .ChatId }}&userName={{ .UserName }}");
-        connMem.onclose = function (evt) {
-            var item = document.createElement("div");
-            item.innerHTML = "<b>Connection closed.</b>";
-            appendLog(memLog, item);
-        };
-        connMem.onmessage = function (evt) {
-            var messages = evt.data.split('\n');
-            for (var i = 0; i < messages.length; i++) {
-                var target = document.getElementById(messages[i])
-                if (target == null) {
-                    var item = document.createElement("div");
-                    item.id = messages[i]
-                    item.innerText = messages[i];
-                    appendLog(memLog, item);
+                var recv = JSON.parse(messages[i]);
+                if (recv.IsText) {
+                    showLog(msgLog, recv.Data);
+                } else if (recv.IsRegister) {
+                    showLog(memLog, recv.Data);
+                } else if (recv.IsUnregister) {
+                    var target = document.getElementById(recv.Data);
+                    if (target != null) {
+                        memLog.removeChild(target);
+                    }
                 } else {
-                    memLog.removeChild(target)
+                    showLog(msgLog, "received unknown message: "+recv.Data);
                 }
             }
         };
@@ -87,19 +80,19 @@ window.onload = function () {
     } else {
         var item = document.createElement("div");
         item.innerHTML = "<b>Your browser does not support WebSockets.</b>";
-        appendLog(log, item);
+        appendLog(msgLog, item);
     }
 };
 </script>
 
 <style type="text/css">
   
-    #log {
+    #msgLog {
         background: grey;
         overflow: auto;
     }
 
-    #member {
+    #memLog {
         background: lightblue;
         overflow: auto;
     }

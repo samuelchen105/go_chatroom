@@ -110,7 +110,8 @@ func doLogin(w http.ResponseWriter, r *http.Request) {
 	//validate
 	if user.Email != form.Email || bcrypt.CompareHashAndPassword(user.Password, []byte(form.Password)) != nil {
 		log.Println("user enter wrong email or password")
-		w.WriteHeader(http.StatusBadRequest)
+		data := templForm{CsrfField: csrf.TemplateField(r), ErrMsg: "wrong email or password"}
+		common.GenerateHTML(w, data, "layout", "user_login")
 		return
 	}
 	//setcookie
